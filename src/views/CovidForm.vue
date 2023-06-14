@@ -1,3 +1,7 @@
+<style lang="scss">
+@import './CovidForm.scss';
+</style>
+
 <template>
   <div class="container mt-5">
     <div class="row justify-content-center">
@@ -7,28 +11,20 @@
             <h4>การฉีดวัคซีนป้องกันโควิด 19</h4>
           </div>
           <div class="card-body">
-            <form @submit.prevent="validate">
+            <form @submit.prevent="validate()">
               <div class="form-group">
                 <div class="row">
                   <div class="col">
-                    <!-- Start Input Firstname -->
                     <label for="firstname">ชื่อ</label>
-                    <input type="text" class="form-control" v-bind:class="{ 'is-invalid': firstnameError }" id="firstname"
-                      placeholder="ชื่อของคุณ" v-model="firstname">
-                    <div class="invalid-feedback" id="feedback-1" v-if="errors[0]">
-                      {{ errors[0].message }}
-                    </div>
-                    <!-- End Input Lastname -->
+                    <input v-model="firstname" type="text" :class="['form-control', { 'is-invalid': errors.firstname }]"
+                      id="firstname" placeholder="กรุณากรอกชื่อ">
+                    <div v-if="errors.firstname" class="invalid-feedback">{{ errors.firstname }}</div>
                   </div>
                   <div class="col">
-                    <!-- Start Input Lastname -->
                     <label for="lastname">นามสกุล</label>
-                    <input type="text" class="form-control" v-bind:class="{ 'is-invalid': lastnameError }" id="lastname"
-                      placeholder="นามสกุลของคุณ" v-model="lastname">
-                    <div class="invalid-feedback" id="feedback-2" v-if="errors[1]">
-                      {{ errors[1].message }}
-                    </div>
-                    <!-- End Input Lastname -->
+                    <input v-model="lastname" type="text" :class="['form-control', { 'is-invalid': errors.lastname }]"
+                      id="lastname" placeholder="กรุณากรอกนามสกุล">
+                    <div v-if="errors.lastname" class="invalid-feedback">{{ errors.lastname }}</div>
                   </div>
                 </div>
               </div>
@@ -36,32 +32,55 @@
               <div class="form-group">
                 <div class="row">
                   <div class="col">
-                    <!-- Start Input Cardnumber -->
                     <label for="cardnumber">เลขบัตรประชาชน</label>
-                    <input type="text" v-model="cardnumber" @input="cardnumberInput" class="form-control"
-                      v-bind:class="{ 'is-invalid': cardnumberError }" id="cardnumber" placeholder="เลขบัตรประชาชนของคุณ">
-                      <div class="invalid-feedback" id="feedback-3" v-if="errors[2]">
-                      {{ errors[2].message }}
-                    </div>
-                    <!-- End Input Cardnumber -->
+                    <input v-model="cardnumber" type="text" :class="['form-control', { 'is-invalid': errors.cardnumber }]"
+                      id="cardnumber" placeholder="กรุณากรอกเลขบัตรประชาชน">
+                    <div v-if="errors.cardnumber" class="invalid-feedback">{{ errors.cardnumber }}</div>
                   </div>
                 </div>
               </div>
-              <!-- <div class="form-group">
-                <input type="text" class="form-control" v-bind:class="{ 'is-invalid': emailError }" id="email"
-                  placeholder="Your email" v-model="email">
-                <div class="invalid-feedback" id="feedback-3" v-if="errors[2]">
-                  {{ errors[2].message }}
+
+              <div class="form-group">
+                <div class="row">
+                  <div class="col">
+                    <label for="gender">เพศ</label>
+                    <select v-model="gender" :class="['form-select', { 'is-invalid': errors.gender }]">
+                      <option selected value="blank">กรุณาเลือกเพศ</option>
+                      <option value="male">ชาย</option>
+                      <option value="female">หญิง</option>
+                    </select>
+                    <div v-if="errors.gender" class="invalid-feedback">{{ errors.gender }}</div>
+                  </div>
                 </div>
               </div>
+
               <div class="form-group">
-                <textarea class="form-control" v-bind:class="{ 'is-invalid': commentError }" id="comment"
-                  placeholder="Your comment" v-model="comment"></textarea>
-                <div class="invalid-feedback" id="feedback-4" v-if="errors[3]">
-                  {{ errors[3].message }}
+                <div class="row">
+                  <div class="col">
+                    <label for="date">วัน/เดือน/ปี เกิด</label>
+                    <VueDatePicker v-model="date" :format='"dd-MM-yyyy"' :max-date="maxdate" :enable-time-picker="false">
+                    </VueDatePicker>
+                  </div>
                 </div>
+              </div>
+
+
+
+              <!-- <div class="form-group">
+                <label for="email">Email</label>
+                <input v-model="email" type="email" :class="['form-control', { 'is-invalid': errors.email }]" id="email"
+                  placeholder="Enter your email">
+                <div v-if="errors.email" class="invalid-feedback">{{ errors.email }}</div>
               </div> -->
-              <button class="btn btn-primary" type="submit">Validate</button>
+              <div class="row">
+                <div class="col">
+                  <button type="button" class="btn btn-outline-primary" @click="cleardata">ล้างค่า</button>
+                </div>
+                <div class="col">
+                  <button type="submit" class="btn btn-success">ยืนยัน</button>
+                </div>
+              </div>
+
             </form>
           </div>
         </div>
@@ -73,113 +92,91 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-interface ErrorItem {
-  message: string;
-}
-
 export default defineComponent({
-  name: 'home',
   data() {
     return {
       firstname: '',
       lastname: '',
       cardnumber: '',
-      email: '',
-      comment: '',
-      firstnameError: false,
-      lastnameError: false,
-      cardnumberError: false,
-      emailError: false,
-      commentError: false,
-      errors: [] as ErrorItem[], // Explicitly define the type of 'errors'
+      gender: 'blank',
+      date: new Date(),
+      maxdate: new Date(),
+      // email: '',
+      errors: {} as { [key: string]: string }
     };
   },
   methods: {
-    validate() {
-      this.errors = [];
-      const firstnamelen = this.firstname.length;
-      // firstname validate
-      if (firstnamelen < 5 || firstnamelen > 20) {
-        this.firstnameError = true;
-        this.errors.push({
-          // message: 'Name must be between 5 to 20 characters long.',
-          message: 'ชื่อต้องมีความยาวระหว่าง 5 ถึง 20 อักขระ',
-        });
-      } else {
-        (document.getElementById('firstname') as HTMLInputElement).className = 'form-control is-valid';
-        this.errors.push({
-          message: ' ',
-        });
-        (document.getElementById('feedback-1') as HTMLElement).className = 'valid-feedback';
+    validate(): void {
+      this.errors = {};
+
+      if (!this.firstname) {
+        this.errors.firstname = 'กรุณากรอกชื่อของคุณ';
       }
 
-      // lastname validate
-      const lastnamelen = this.lastname.length;
-      if (lastnamelen < 5 || lastnamelen > 20) {
-        this.lastnameError = true;
-        this.errors.push({
-          // message: 'Name must be between 5 to 20 characters long.',
-          message: 'นามสกุลต้องมีความยาวระหว่าง 5 ถึง 20 อักขระ',
-        });
-      } else {
-        (document.getElementById('lastname') as HTMLInputElement).className = 'form-control is-valid';
-        this.errors.push({
-          message: ' ',
-        });
-        (document.getElementById('feedback-2') as HTMLElement).className = 'valid-feedback';
+      if (!this.lastname) {
+        this.errors.lastname = 'กรุณากรอกนามสกุลของคุณ';
       }
 
-      // cardnumber validate
-      const cardnumberlen = this.cardnumber.length;
-      if (cardnumberlen == null || cardnumberlen > 13 || cardnumberlen <= 12) {
-        this.cardnumberError = true;
-        this.errors.push({
-          message: 'เลขบัตรประชาชนต้องครบ 13 หลัก',
-        });
-      } else {
-        (document.getElementById('cardnumber') as HTMLInputElement).className = 'form-control is-valid';
-        this.errors.push({
-          message: ' ',
-        });
-        (document.getElementById('feedback-3') as HTMLElement).className = 'valid-feedback';
+      if (!this.cardnumber) {
+        this.errors.cardnumber = 'กรุณากรอกรหัสประชาชนให้ถูกต้อง';
       }
 
-      // email validate
-      // if (this.email.length < 10 || this.email.search('@') === -1) {
-      //   this.emailError = true;
-      //   this.errors.push({
-      //     message: 'Please provide a valid email address.',
-      //   });
-      // } else {
-      //   (document.getElementById('email') as HTMLInputElement).className = 'form-control is-valid';
-      //   this.errors.push({
-      //     message: 'Validated.',
-      //   });
-      //   (document.getElementById('feedback-3') as HTMLElement).className = 'valid-feedback';
+      if (!this.gender || this.gender == 'blank') {
+        this.errors.gender = 'กรุณาระบุเพศ';
+      }
+
+      // if (!this.email) {
+      //   this.errors.email = 'Please enter your email.';
+      // } else if (!this.isValidEmail(this.email)) {
+      //   this.errors.email = 'Please enter a valid email address.';
       // }
-      // comment validate
-      const regex = /^[a-zA-Z0-9 .-]+$/;
-      if (this.comment.length < 20 || this.comment.match(regex) === null) {
-        this.commentError = true;
-        this.errors.push({
-          message: 'Comment must be of 20 characters or more and use of special characters except . and - are restricted',
-        });
-      } else {
-        (document.getElementById('comment') as HTMLInputElement).className = 'form-control is-valid';
-        this.errors.push({
-          message: 'Validated.',
-        });
-        (document.getElementById('feedback-4') as HTMLElement).className = 'valid-feedback';
+
+      if (Object.keys(this.errors).length === 0) {
+        // Perform form submission logic here
+        // e.g., send the data to the server
+        console.log('Form submitted!');
+      }
+
+      if (!this.cardnumber) {
+        this.errors.cardnumber = 'กรุณากรอกรหัสประชาชน';
+      } else if (!this.checkcardnumber(this.cardnumber)) {
+        this.errors.cardnumber = 'กรุณากรอกรหัสประชาชนให้ถูกต้อง';
+      }
+    },
+    // isValidEmail(email: string): boolean {
+    //   // Add your email validation logic here
+    //   // This is a simple example, you can use regular expressions or a library for more comprehensive validation
+    //   const emailRegex = /^\S+@\S+.\S+$/;
+    //   return emailRegex.test(email);
+    // }
+
+    checkcardnumber(cardnumber: string) {
+      let sum = 0;
+      if (Number(cardnumber.substring(0, 1)) == 0) {
+        return false;
+      }
+      if (cardnumber.length != 13) {
+        return false;
+      }
+      for (let i = 0; i < 12; i++) {
+        sum += parseFloat(cardnumber.charAt(i)) * (13 - i);
+        console.log(sum);
+      }
+      if ((11 - sum % 11) % 10 != parseFloat(cardnumber.charAt(12))) {
+        return false;
+      }
+      else {
+        return true;
       }
     },
 
-    cardnumberInput() {
-      // Remove non-numeric characters from the input
-      this.cardnumber = this.cardnumber.replace(/\D/g, '');
+    cleardata(){
+      this.firstname = '';
+      this.lastname = '';
+      this.cardnumber = '';
+      this.gender = 'blank';
+      this.date = new Date();
     },
-
-
-
-  },
+  }
 });
 </script>
