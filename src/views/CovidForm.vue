@@ -8,10 +8,12 @@
       <div class="col-md-8">
         <div class="card">
           <div class="card-header">
-            <h4>การฉีดวัคซีนป้องกันโควิด 19</h4>
+            <h4 class="head-center">การฉีดวัคซีนป้องกันโควิด 19</h4>
           </div>
           <div class="card-body">
             <form @submit.prevent="validate()">
+
+              <!-- input name -->
               <div class="form-group">
                 <div class="row">
                   <div class="col">
@@ -29,6 +31,7 @@
                 </div>
               </div>
 
+              <!-- input cardnumber -->
               <div class="form-group">
                 <div class="row">
                   <div class="col">
@@ -40,6 +43,7 @@
                 </div>
               </div>
 
+              <!-- input gender -->
               <div class="form-group">
                 <div class="row">
                   <div class="col">
@@ -54,6 +58,7 @@
                 </div>
               </div>
 
+              <!-- input date -->
               <div class="form-group">
                 <div class="row">
                   <div class="col">
@@ -64,15 +69,8 @@
                 </div>
               </div>
 
-
-
-              <!-- <div class="form-group">
-                <label for="email">Email</label>
-                <input v-model="email" type="email" :class="['form-control', { 'is-invalid': errors.email }]" id="email"
-                  placeholder="Enter your email">
-                <div v-if="errors.email" class="invalid-feedback">{{ errors.email }}</div>
-              </div> -->
-              <div class="row">
+              <!-- input button reset and confirm -->
+              <div class="row btn-margin">
                 <div class="col">
                   <button type="button" class="btn btn-outline-primary" @click="cleardata">ล้างค่า</button>
                 </div>
@@ -82,6 +80,26 @@
               </div>
 
             </form>
+
+            <!-- Modal -->
+            <div class="modal fade" :class="{ 'show': showModal }" tabindex="-1" role="dialog">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">ยืนยันข้อมูล</h5>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close" @click="closeModal">
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>ยืนยันข้อมูลการฉีดวัคซีนป้องกันโควิด 19 </p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">ตรวจสอบข้อมูล</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -102,7 +120,8 @@ export default defineComponent({
       date: new Date(),
       maxdate: new Date(),
       // email: '',
-      errors: {} as { [key: string]: string }
+      errors: {} as { [key: string]: string },
+      showModal: false,
     };
   },
   methods: {
@@ -111,6 +130,8 @@ export default defineComponent({
 
       if (!this.firstname) {
         this.errors.firstname = 'กรุณากรอกชื่อของคุณ';
+      }else if (!this.isValidName(this.firstname)) {
+        this.errors.name = 'Please enter a valid name (English or Thai characters only).';
       }
 
       if (!this.lastname) {
@@ -135,6 +156,9 @@ export default defineComponent({
         // Perform form submission logic here
         // e.g., send the data to the server
         console.log('Form submitted!');
+        this.showModal = true; // Show the modal
+
+
       }
 
       if (!this.cardnumber) {
@@ -142,6 +166,7 @@ export default defineComponent({
       } else if (!this.checkcardnumber(this.cardnumber)) {
         this.errors.cardnumber = 'กรุณากรอกรหัสประชาชนให้ถูกต้อง';
       }
+
     },
     // isValidEmail(email: string): boolean {
     //   // Add your email validation logic here
@@ -170,12 +195,23 @@ export default defineComponent({
       }
     },
 
-    cleardata(){
+    cleardata() {
       this.firstname = '';
       this.lastname = '';
       this.cardnumber = '';
       this.gender = 'blank';
       this.date = new Date();
+    },
+
+    closeModal(): void {
+      this.showModal = false; // Close the modal
+    },
+
+    isValidName(name: string): boolean {
+      const nameRegex = /^[\u0E00-\u0E7F\u0020-\u007E]+$/; // Regular expression to match Thai and English characters
+      const specialCharsRegex = /[!@#$%^&*()_+?><":{}|']/; // Regular expression to match special characters
+
+      return nameRegex.test(name) && !specialCharsRegex.test(name);
     },
   }
 });

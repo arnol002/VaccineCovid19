@@ -6,12 +6,15 @@ import router from './router'
 import 'bootstrap';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
-
+import { createPinia } from 'pinia'
 
 const app = createApp(App)
+const pinia = createPinia()
+
+app.use(pinia);
 
 app.component('VueDatePicker', VueDatePicker);
 
-app.use(router)
+app.use(router);
 
-app.mount('#app')
+app.mount('#app');
